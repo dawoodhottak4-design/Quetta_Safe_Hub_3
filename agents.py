@@ -1,14 +1,17 @@
 import os
 from groq import Groq
+import streamlit as st
 
-def get_groq_client(api_key):
+def get_groq_client():
+    # Streamlit secrets se API key uthaye ga (streamlit secrets -> groq_api_key)
+    try:
+        api_key = st.secrets["groq_api_key"]
+    except Exception:
+        api_key = os.environ.get("GROQ_API_KEY", "")
     return Groq(api_key=api_key)
 
-def run_agent_query(api_key, agent_name, prompt):
-    if not api_key:
-        return "Barah-e-karam apni Groq API Key enter karein."
-    
-    client = get_groq_client(api_key)
+def run_agent_query(agent_name, prompt):
+    client = get_groq_client()
     
     system_prompts = {
         "Traffic & ANPR Agent": "You are a specialized AI agent for Quetta Safe City monitoring ANPR, multi-lane traffic, and vehicle recognition systems.",
@@ -28,4 +31,4 @@ def run_agent_query(api_key, agent_name, prompt):
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"Error connecting to Groq API: {str(e)}"
+        return f"Error connecting to Groq API (Barah-e-karam check karein ke Streamlit secrets mein 'groq_api_key' theek se added hai): {str(e)}"
