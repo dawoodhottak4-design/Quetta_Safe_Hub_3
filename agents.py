@@ -1,6 +1,7 @@
 import os
 from groq import Groq
 import streamlit as st
+from duckduckgo_search import DDGS
 
 def get_groq_client():
     try:
@@ -9,24 +10,38 @@ def get_groq_client():
         api_key = os.environ.get("GROQ_API_KEY", "")
     return Groq(api_key=api_key)
 
+def web_search(query):
+    """DuckDuckGo se real-time internet search karne ka function"""
+    try:
+        with DDGS() as ddgs:
+            results = [r['body'] for r in ddgs.text(query, max_results=3)]
+            return "\n".join(results) if results else "No live search results found."
+    except Exception as e:
+        return f"Search error: {str(e)}"
+
 def run_agent_query(agent_name, prompt):
     client = get_groq_client()
     
-    # Quetta Safe City official accurate roads and infrastructure context
-    quetta_context = """
-    Context about Quetta Safe City:
-    - Accurate Main Roads in Quetta: Jinnah Road, Saryab Road, Shahrah-e-Zarghoon (Zarghoon Road), Brewery Road, Samungli Road, Airport Road, Liaquat Bazaar, Mezan Chowk.
-    - Infrastructure: 200+ PTZ Cameras, 1000+ Fixed Cameras, 30+ ANPR Units.
-    - Provide realistic, accurate real-time-like situational analysis based strictly on Quetta's actual geography and official infrastructure. Do not invent fake road names like Mardan Road or Kalat Road.
+    # Live internet search execution based on user prompt
+    search_query = f"Quetta Balochistan {prompt}"
+    search_results = web_search(search_query)
+    
+    quetta_context = f"""
+    You are an advanced AI command and control agent for Quetta Safe City (bsca.gov.pk).
+    You have performed a live real-time internet search regarding the user's request. 
+    Here is the live search data fetched from the internet:
+    {search_results}
+    
+    Use this live data along with official Quetta Safe City infrastructure context (200+ PTZ cameras, 1000+ fixed cameras, 30+ ANPR units on Jinnah Road, Saryab Road, Shahrah-e-Zarghoon) to provide an accurate, real-time status report.
     """
     
     system_prompts = {
-        "Traffic & ANPR Agent": f"You are a specialized AI agent for Quetta Safe City monitoring ANPR, multi-lane traffic, and vehicle recognition systems on actual Quetta roads. {quetta_context}",
-        "Emergency Response Agent": f"You are an emergency response coordination agent handling PTZ camera feeds, crime alerts, and quick incident management in Quetta's real localities. {quetta_context}",
-        "System Health Agent": f"You are a system health and admin analytics agent tracking server logs, IoT sensor networks, and overall dashboard status for Quetta Safe City. {quetta_context}"
+        "Traffic & ANPR Agent": f"{quetta_context}\nYour role: Monitor live traffic flow, vehicle recognition, and congestion using real-time search and Quetta infrastructure.",
+        "Emergency Response Agent": f"{quetta_context}\nYour role: Handle emergency coordination, PTZ camera feeds, and real-time security alerts in Quetta.",
+        "System Health Agent": f"{quetta_context}\nYour role: Track system health, IoT sensors, and admin control room metrics for Quetta Safe City."
     }
     
-    full_prompt = f"User Request: {prompt}\n\nPlease provide accurate real-time analysis using Quetta's authentic locations and infrastructure."
+    full_prompt = f"Live Query: {prompt}\n\nProvide an immediate real-time report based on the live internet search data above:"
     
     try:
         response = client.chat.completions.create(
@@ -35,7 +50,7 @@ def run_agent_query(agent_name, prompt):
                 {"role": "system", "content": system_prompts.get(agent_name, "You are a helpful assistant.")},
                 {"role": "user", "content": full_prompt}
             ],
-            temperature=0.5,
+            temperature=0.6,
             max_tokens=1024
         )
         return response.choices[0].message.content
