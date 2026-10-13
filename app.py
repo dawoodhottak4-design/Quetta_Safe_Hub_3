@@ -29,8 +29,8 @@ st.markdown("""
 st.markdown('<div class="main-header">🛡️ Quetta Safe Hub 3 - Advanced Multi-Agent Command Center</div>', unsafe_allow_html=True)
 
 with st.sidebar:
-    st.header("⚙️ Configuration")
-    groq_api_key = st.text_input("Enter Groq API Key:", type="password")
+    st.header("⚙️ System Status")
+    st.success("Groq API Key Loaded from Secrets!")
     st.markdown("---")
     st.markdown("### 🤖 Active Agents")
     st.markdown("- Traffic & ANPR Agent")
@@ -51,7 +51,7 @@ with tab1:
         if st.button("Run Traffic Agent"):
             if user_query_1:
                 with st.spinner("Analyzing traffic data..."):
-                    res = run_agent_query(groq_api_key, "Traffic & ANPR Agent", user_query_1)
+                    res = run_agent_query("Traffic & ANPR Agent", user_query_1)
                     st.success(res)
             else:
                 st.warning("Barah-e-karam query enter karein.")
@@ -65,7 +65,7 @@ with tab1:
         if st.button("Run Emergency Agent"):
             if user_query_2:
                 with st.spinner("Processing emergency protocols..."):
-                    res = run_agent_query(groq_api_key, "Emergency Response Agent", user_query_2)
+                    res = run_agent_query("Emergency Response Agent", user_query_2)
                     st.success(res)
             else:
                 st.warning("Barah-e-karam query enter karein.")
@@ -79,7 +79,7 @@ with tab1:
         if st.button("Run Admin Agent"):
             if user_query_3:
                 with st.spinner("Checking system metrics..."):
-                    res = run_agent_query(groq_api_key, "System Health Agent", user_query_3)
+                    res = run_agent_query("System Health Agent", user_query_3)
                     st.success(res)
             else:
                 st.warning("Barah-e-karam query enter karein.")
